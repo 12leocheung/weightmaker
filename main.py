@@ -16,10 +16,6 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QFont
 
-# ======================================================================
-# 1. CORE AI ENGINE
-# ======================================================================
-
 JSON_PATHS = {
     2: "weights_2inputs.json",
     3: "weights_3inputs.json",
@@ -27,7 +23,6 @@ JSON_PATHS = {
 }
 
 class PatternPredictor(nn.Module):
-    """Feedforward meta-network. Input size varies with num_inputs."""
 
     def __init__(self, num_inputs: int):
         super().__init__()
@@ -71,10 +66,7 @@ def train_from_json(json_path: str, epochs: int = 600, status_cb=None) -> "Patte
 
     return net.eval()
 
-
-# ======================================================================
 # 2. NEURAL-NETWORK CODE ANALYSER
-# ======================================================================
 
 class CodeAnalyser:
     INPUT_KEYWORDS  = {"input", "inputs", "x", "features", "data", "x_train", "X"}
@@ -134,7 +126,6 @@ class CodeAnalyser:
                             self.notes.append(f" • Detected target(s) {elts} from '{name}'")
 
     def _pass_target_array_calls(self):
-        """Handle targets like y = np.array([[0],[1],[1],[0]]) or y = np.array([0,1,1,0])"""
         if self.target is not None:
             return
         for node in ast.walk(self.tree):
@@ -232,11 +223,6 @@ class CodeAnalyser:
             "notes":       self.notes,
         }
 
-
-# ======================================================================
-# 3. BACKGROUND WORKERS
-# ======================================================================
-
 class TrainWorker(QThread):
     progress = pyqtSignal(str)
     finished = pyqtSignal(dict)
@@ -259,7 +245,6 @@ class TrainWorker(QThread):
 
 
 class AnalyseTrainWorker(QThread):
-    """Analyses an uploaded .py file, finds num_inputs, trains from the matching JSON."""
     progress = pyqtSignal(str)
     finished = pyqtSignal(dict)
 
@@ -340,11 +325,6 @@ class AnalyseTrainWorker(QThread):
             "matrix":     matrix.tolist(),
             "info":       info,
         })
-
-
-# ======================================================================
-# 4. MAIN UI WINDOW
-# ======================================================================
 
 STYLE = """
 QWidget { background: #1a1d27; color: #e8eaf0;
@@ -688,10 +668,6 @@ class HyperNetApp(QWidget):
         out.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         self.analyse_result.append("\n".join(out))
 
-
-# ======================================================================
-# 5. ENTRY POINT
-# ======================================================================
 if __name__ == "__main__":
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     app = QApplication(sys.argv)
